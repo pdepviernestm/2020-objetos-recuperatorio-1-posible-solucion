@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: navesEspaciales
 Bundle-Vendor: My Company
 Bundle-Version: 1.0.0.qualifier
-Bundle-SymbolicName: parcial-objetos;singleton:=true
+Bundle-SymbolicName: primer-recuperatorio-objetos;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: com.ibm.icu,
  org.eclipse.xtext,
