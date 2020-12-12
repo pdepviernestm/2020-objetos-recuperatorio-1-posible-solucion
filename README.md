@@ -2,7 +2,7 @@
 
 ## Enunciado
 
-https://docs.google.com/document/d/1BbmMIrY-CmsaN1NJXvIv0GtP0XdoFwlHbzPnZkus94M/edit?usp=sharing
+https://docs.google.com/document/d/e/2PACX-1vSZfhAOdnHGnGPzhdYWNuoHhT154gJ6XxDyk03AiyCA7IM2bu-q5Q_ICdb9OOR35A75qafGEx4HTcQ6/pub
 
 ## Estudiante
 
@@ -10,15 +10,15 @@ https://docs.google.com/document/d/1BbmMIrY-CmsaN1NJXvIv0GtP0XdoFwlHbzPnZkus94M/
 
 **Número de legajo:** -
 
-## Tiempo del parcial
+## Tiempo del recuperatorio
 
-Entre 9:15 y 13:00.
+Entre 9:00 y 12:00.
 
-## Reglas del parcial
+## Reglas del recuperatorio
 
 https://docs.google.com/document/d/1emgel5K3Jf-FSgaBngmqEBiVR7y9DEOzQGPC3SpuEv4/edit?usp=sharing
 
-## Que hacer cuando terminan el parcial
+## Que hacer cuando terminan el recuperatorio
 
 - Avisar por discord
 - Crear un issue etiquetando a sus tutores así les llega una notificación y se corrigen y les dejan feedback ahí.
