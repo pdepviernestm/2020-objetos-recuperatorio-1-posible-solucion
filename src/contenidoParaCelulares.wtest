@@ -1,0 +1,173 @@
+import contenidosParaCelulares.*
+import fechasHelper.*
+
+describe "precio de descarga" {
+	
+	test "el monto por derecho de autor de un juego esta dado para cada juego" {
+		const celeste = new Juego(monto = 10)
+		
+		assert.equals(10, celeste.montoPorDerechoDeAutor(empresaDeComercializacionDeContenidos))
+	}
+	
+	test "el monto por derecho de autor de un ringtone es el costo por minuto de su autor por los minutos de ringtone" {
+		const charly = new Autor(precioPorMinuto = 10)
+		const fanky = new Ringtone(autor = charly, duracionEnMinutos = 5)
+		
+		assert.equals(50, fanky.montoPorDerechoDeAutor(empresaDeComercializacionDeContenidos))
+	}
+	
+	test "el monto por derecho de autor de un chiste es un monto fijo dado por la cantidad de caracteres del texto" {
+		empresaDeComercializacionDeContenidos.costoPorCaracterEnChistes(2)
+		const chiste = new Chiste(chiste =
+			"Estaban dos elefantes bañandose y a uno se le cae el jabon, y le dice al otro: -Me alcanzas el jabon? -No, Radio."
+		)
+
+		assert.equals(226, chiste.montoPorDerechoDeAutor(empresaDeComercializacionDeContenidos))
+	}
+	
+	test "lo que cobra la empresa de contenidos por descarga es un 25% de lo que sale la descarga" {
+		const costoBaseDeDescarga = new Juego(monto = 100).montoPorDerechoDeAutor(empresaDeComercializacionDeContenidos)
+		
+		assert.equals(25, empresaDeComercializacionDeContenidos.cuantoCobraPorDescarga(costoBaseDeDescarga))
+	}
+	
+	test "lo que cobra una compania de telecomunicaciones nacional por descarga es un 5% de lo que sale la descarga" {
+		const costoBaseDeDescarga = new Juego(monto = 100).montoPorDerechoDeAutor(empresaDeComercializacionDeContenidos)
+		
+		assert.equals(5, new CompaniaDeTelecomunicacionesNacional().cuantoCobraPorDescarga(costoBaseDeDescarga))
+	}
+	
+	test "lo que cobra una compania de telecomunicaciones extranjera por descarga es lo mimso que una nacional + el valor del impuesto por prestacion" {
+		const costoBaseDeDescarga = new Juego(monto = 100).montoPorDerechoDeAutor(empresaDeComercializacionDeContenidos)
+		impuestoPorPrestacion.valor(10)
+		
+		assert.equals(15, new CompaniaDeTelecomunicacionesExtranjera().cuantoCobraPorDescarga(costoBaseDeDescarga))
+	}
+	
+	test "lo que le sale a un cliente con plan facturado descargar un producto es
+		  el monto por derecho de autor del mismo + lo que cobra la empresa de comercializacion de contenidos
+		  + lo que cobra su compania de telecomunicaciones" {
+		const celeste = new Juego(monto = 100)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(),
+									plan = new Facturado())
+		
+		assert.equals(130, cliente.precioDeDescarga(celeste, empresaDeComercializacionDeContenidos))
+    }
+    
+	test "lo que le sale a un cliente con plan prepago descargar un producto es
+		  el monto por derecho de autor del mismo + lo que cobra la empresa de comercializacion de contenidos
+		  + lo que cobra su compania de telecomunicaciones, todo eso con un recargo de 10%" {
+		const celeste = new Juego(monto = 100)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(),
+									plan = new Prepago(saldo = 0))
+		
+		assert.equals(143, cliente.precioDeDescarga(celeste, empresaDeComercializacionDeContenidos))
+    }
+}
+
+describe "registrar descarga" {
+	test "un cliente con plan prepago no puede descargar un producto si su saldo no le alcanza para pagarla" {
+		const planPrepago = new Prepago(saldo = 5)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = planPrepago)
+		const celeste = new Juego(monto = 100)
+
+		assert.throwsExceptionWithMessage("El cliente no posee suficiente saldo para descargar el producto. Tiene 5 y necesita 143",
+										  { cliente.descargar(celeste, empresaDeComercializacionDeContenidos) }
+		)
+		assert.equals(5, planPrepago.saldo())
+	}
+	
+	test "un cliente con plan prepago al descargar un producto disminuye su saldo en el precio de la descarga" {
+		const planPrepago = new Prepago(saldo = 200)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = planPrepago)
+		const celeste = new Juego(monto = 100)
+
+		cliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+		assert.equals(57, planPrepago.saldo())
+	}
+	
+	test "un cliente con plan facturado al descargar un producto aumenta su monto gastado" {
+		const planFacturado = new Facturado()
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = planFacturado)
+		const celeste = new Juego(monto = 100)
+
+		cliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+		assert.equals(130, planFacturado.montoGastado())
+	}
+}
+
+describe "cuanto gasto en un mes" {
+	test "es la suma de todo lo que gasto el cliente en descargas en un mes" {
+		const celeste = new Juego(monto = 100)
+		const animalCrossing = new Juego(monto = 200)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = new Facturado())
+		
+		cliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+		cliente.descargar(animalCrossing, empresaDeComercializacionDeContenidos)
+		
+		assert.equals(390, cliente.cuantoGastoEnElMesActualCon(empresaDeComercializacionDeContenidos))
+	}
+	
+	test "si el cliente compro en otro mes, eso no entra en lo que gasto en el mes actual" {
+		const celeste = new Juego(monto = 100)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = new Facturado())
+
+		hacerEn.fecha(new Date().minusMonths(1), { cliente.descargar(celeste, empresaDeComercializacionDeContenidos) })
+		
+		assert.equals(0, cliente.cuantoGastoEnElMesActualCon(empresaDeComercializacionDeContenidos))
+	}
+}
+
+describe "cliente colgado" {
+	test "un cliente no es colgado si nunca descargo un producto dos veces" {
+		const celeste = new Juego(monto = 100)
+		const animalCrossing = new Juego(monto = 200)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = new Facturado())
+		
+		cliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+		cliente.descargar(animalCrossing, empresaDeComercializacionDeContenidos)
+		
+		assert.notThat(cliente.esColgadoPara(empresaDeComercializacionDeContenidos))
+	}
+	
+	test "un cliente es colgado si descargo un producto mas de una vez" {
+		const celeste = new Juego(monto = 100)
+		const cliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = new Facturado())
+		
+		2.times { n => cliente.descargar(celeste, empresaDeComercializacionDeContenidos) }
+		
+		assert.that(cliente.esColgadoPara(empresaDeComercializacionDeContenidos))		
+	}
+}
+
+describe "producto mas descargado" {
+	const unCliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = new Facturado())
+	const otroCliente = new Cliente(companiaDeTelecomunicaciones = new CompaniaDeTelecomunicacionesNacional(), plan = new Facturado())
+	const celeste = new Juego(monto = 100)
+	const animalCrossing = new Juego(monto = 200)
+
+	test "es el que mas descargas tuvo en una fecha" {
+		unCliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+		otroCliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+		otroCliente.descargar(animalCrossing, empresaDeComercializacionDeContenidos)
+		
+		assert.equals(celeste, empresaDeComercializacionDeContenidos.productoMasDescargado(new Date()))
+	}
+	
+	test "si tuvo descargas pero en otra fecha solo cuenta para esa fecha" {
+		const hoy = new Date()
+		const ayer = hoy.minusDays(1)
+
+		hacerEn.fecha(ayer, {
+			unCliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+			otroCliente.descargar(celeste, empresaDeComercializacionDeContenidos)
+			otroCliente.descargar(animalCrossing, empresaDeComercializacionDeContenidos)
+		})
+		hacerEn.fecha(hoy, {
+			otroCliente.descargar(animalCrossing, empresaDeComercializacionDeContenidos)
+		})
+		
+		assert.equals(celeste, empresaDeComercializacionDeContenidos.productoMasDescargado(ayer))
+		assert.equals(animalCrossing, empresaDeComercializacionDeContenidos.productoMasDescargado(hoy))
+	}
+}
